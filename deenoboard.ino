@@ -18,18 +18,17 @@ int brightness[ROWS][COLS]; // 2D array to keep track of the current brightness 
 
 bool escape;
 
-// 3 * 2 array
-const byte rows = 4;
-const byte cols = 2;
+// 3 * 3 array
+const byte rows = 3;
+const byte cols = 3;
 char keys[rows][cols] = {
-  {1, 2},
-  {11, 12},
-  {21, 22},
-  {31, 32}
+  {1, 2, 3},
+  {11, 12, 13},
+  {21, 22, 23},
 };
 
-byte rowPins[rows] = {48, 44, 40, 38};
-byte colPins[cols] = {36, 34};
+byte rowPins[rows] = {36, 37, 38};
+byte colPins[cols] = {22, 23, 24};
 Keypad buttons = Keypad( makeKeymap(keys), rowPins, colPins, rows, cols );
 
 CRGB leds[NUM_LEDS];
@@ -49,9 +48,11 @@ void setup() {
 
 void loop() {
   
-  draw_tic_border();
+  // draw_tic_border();
+  tic();
 }
 
+// lights a specific led dictated by row and column
 void light_led(int row, int col, int color, int brightness){
   int extra = 0;
   if (col % 2 != 0){
@@ -77,7 +78,8 @@ void light_row(int colStart, int colEnd, int row, int color, int bright){
   }
 }
 
-void light_tile(int row, int col, int color, int bright){ 
+void light_tile(int row, int col, int color, int bright){
+  
     if (color == 256) 
         bright = 0; 
     for(int i=14; i >= 12; i--){
@@ -91,7 +93,9 @@ void light_tile(int row, int col, int color, int bright){
 }
 
 void paint(){
-  // clear_display();
+  clear_display();
+  light_column(14, 6, 6, 192, 190);
+  light_row(0, 6, 9, 192, 190);
   bool tap = 1;
   int color = 0;
   while(tap){                                               //Loop until a button is held
@@ -139,3 +143,114 @@ void draw_tic_border(){
   
   FastLED.show();
 }
+
+//-----------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------
+void tic(){
+  clear_display();
+  draw_tic_border();
+  bool tap = 1;
+  bool turn = 0;
+  while(tacwinner()){
+    int location = buttons.waitForKey();
+    if(buttons.getState() == HOLD)
+      return;
+    else if (location){
+      int color = 0;
+      if(turn)
+        color = 120;
+      light_tile(location/10, (location%10)-1, color, 255);
+      FastLED.show();
+      delay(100);
+      turn = !turn;
+    }
+  }
+}
+
+
+bool tacwinner(){
+  for(int i = 3; i < ROWS; i+=2){
+    if (values[i][0] == values[i][2] && values[i][0] == values[i][4]){
+      if (values[i][0] == 0){
+        redwins();
+        return 0;
+      }
+      if (values[i][0] == 120){
+        bluewins();
+        return 0;
+      }
+    }
+  }
+  for(int i = 0; i < 5; i+=2){
+    if (values[3][i] == values[5][i] && values[3][i] == values[7][i]){
+      if (values[3][i] == 0){
+        redwins();
+        return 0;
+      }
+      if (values[3][i] == 120){
+        bluewins();
+        return 0;
+      }
+    }
+  }
+  if (values[3][0] == values[5][2] && values[3][0] == values[7][4]){
+    if (values[3][0] == 0){
+      redwins();
+      return 0;
+    }
+    if (values[3][0] == 120){
+      bluewins();
+      return 0;
+    }
+  }
+  if (values[7][0] == values[5][2] && values[7][0] == values[3][4]){
+    if (values[7][0] == 0){
+      redwins();
+      return 0;
+    }
+    if (values[7][0] == 120){
+      bluewins();
+      return 0;
+    }
+  }
+  for (int i = 3; i < ROWS; i += 2)
+    for (int j = 0; j < 5; j += 2)
+      if (values[i][j] == 256)
+        return 1;
+  nowins();
+  return 0;
+}
+
+void redwins(){
+  for (int i = 0; i < ROWS; i++)
+    for (int j = 0; j < COLS; j++)
+      light_tile(i, j, 0, 255);
+  FastLED.show();
+  delay(3000);
+  clear_display();
+}
+
+void bluewins(){
+  for (int i = 0; i < ROWS; i++)
+    for (int j = 0; j < COLS; j++)
+      light_tile(i, j, 120, 255);
+  FastLED.show();
+  delay(3000);
+  clear_display();
+}
+
+void nowins(){
+  bool yes = 0;
+  for (int i = 0; i < ROWS; i++)
+    for (int j = 0; j < COLS; j++){
+      int color = 0;
+      if(yes)
+        color = 120;
+      light_tile(i, j, color, 255);
+      yes = !yes;
+    }
+  FastLED.show();
+  delay(3000);
+  clear_display();
+}
+//-----------------------------------------------------------------------------------
