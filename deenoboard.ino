@@ -48,7 +48,33 @@ void setup() {
 }
 
 void loop() {
+  
   draw_tic_border();
+}
+
+void light_led(int row, int col, int color, int brightness){
+  int extra = 0;
+  if (col % 2 != 0){
+    col -= 1;
+    extra = 1 + (row * 2);
+  }
+  int led = (14 - row) + (15 * col) + extra;
+  leds[led]= CHSV(192, 255, 190);
+  FastLED.show();    
+}
+
+void light_column(int rowStart, int rowEnd, int col, int color, int bright){
+    for(int i=rowStart; i >= rowEnd; i--){
+        leds[i + 15*col]= CHSV(color, 255, bright); 
+        
+        // values[i][col] = color; 
+        // brightness[i][col] = bright;
+    }
+}
+void light_row(int colStart, int colEnd, int row, int color, int bright){
+  for (int i = colStart; i <= colEnd; i++){
+    light_led(row, i, color, bright);
+  }
 }
 
 void light_tile(int row, int col, int color, int bright){ 
@@ -101,23 +127,15 @@ void clear_display(){
 
 void draw_tic_border(){
   // top of grid
-  clear_display();
+  // clear_display();
   int tileColour = 185;
   int tileBrightness = 100;
-  for (int i = 2; i <= 6; i++){
-      light_tile(0, i, tileColour, tileBrightness);
-  }
-  // bottom of grid
-  for (int i = 2; i <= 6; i++){
-      light_tile(4, i, tileColour, tileBrightness);
-  }
-  // left of grid
-  for (int i = 1; i < 4; i++){
-    light_tile(i, 2, tileColour, tileBrightness);
-  }
-  for (int i = 1; i < 4; i++){
-    light_tile(i, 6, tileColour, tileBrightness);
-  }
-   
+  
+  light_column(11, 3, 5, tileColour, tileBrightness);
+  light_column(11, 3, 12, tileColour, tileBrightness);
+  light_row(5, 12, 2, tileColour, tileBrightness);
+  light_row(5, 12, 12, tileColour, tileBrightness);
+  
+  
   FastLED.show();
 }
