@@ -9,8 +9,8 @@
 #define COLOR_ORDER GRB 
 #define NUM_MODES 4
 
-#define ROWS 5
-#define COLS 6
+#define ROWS 9
+#define COLS 5
 
 int values[ROWS][COLS]; // 2D array to keep track of the current color of each tile
 int mem_values[ROWS][COLS]; // 2D array to keep track Memory Colors
