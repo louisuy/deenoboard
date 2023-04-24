@@ -88,7 +88,9 @@ void light_tile(int row, int col, int color, int bright){
     for(int i=15; i <= 17; i++){
         leds[i + 3*row + 30*col]= CHSV(color, 255, bright); 
     }
-    values[row][col] = color; 
+
+    // values array keeps track of the current colour of a tile
+    values[row][col] = color;
     brightness[row][col] = bright; 
 }
 
@@ -140,7 +142,6 @@ void draw_tic_border(){
   light_row(5, 12, 2, tileColour, tileBrightness);
   light_row(5, 12, 12, tileColour, tileBrightness);
   
-  
   FastLED.show();
 }
 
@@ -169,6 +170,67 @@ void tic(){
 
 
 bool tacwinner(){
+  //// Modified check meant for top left corner
+
+  // Checks for tiles lit up in a row
+  for (int i = 0; i < 3; i++){
+    if (values[i][0] == values[i][1] && values[i][0] == values[i][2]){
+      if (values[i][0] == 0){
+        redwins();
+        return 0;
+      }
+      if (values[i][0] == 120){
+        bluewins();
+        return 0;
+      }
+    }
+  }
+
+  // Checks for tiles lit up in a column
+  for (int i = 0; i < 3; i++){
+    if (values[0][i] == values[1][i] && values[0][i] == values[2][i]){
+      if (values[i][0] == 0){
+        redwins();
+        return 0;
+      }
+      if (values[i][0] == 120){
+        bluewins();
+        return 0;
+      }
+    }
+  }
+
+  if (values[0][0] == values[1][1] && values[0][0] == values[2][2]){
+    if (values[i][0] == 0){
+      redwins();
+      return 0;
+    }
+    if (values[i][0] == 120){
+      bluewins();
+      return 0;
+    }
+  }
+
+  if (values[0][2] == values[1][1] && values[0][2] == values[2][0]){
+    if (values[i][0] == 0){
+      redwins();
+      return 0;
+    }
+    if (values[i][0] == 120){
+      bluewins();
+      return 0;
+    }
+  }
+  // Draw condition
+  for (int i = 0; i < 3; i++){
+    for (int j = 0; j < 3; j++){
+      if (values[i][j] == 256){
+        return 1
+      }
+    }
+  }
+
+  //// Original check
   for(int i = 3; i < ROWS; i+=2){
     if (values[i][0] == values[i][2] && values[i][0] == values[i][4]){
       if (values[i][0] == 0){
@@ -213,10 +275,12 @@ bool tacwinner(){
       return 0;
     }
   }
+  // Draw condition
   for (int i = 3; i < ROWS; i += 2)
     for (int j = 0; j < 5; j += 2)
       if (values[i][j] == 256)
         return 1;
+        
   nowins();
   return 0;
 }
