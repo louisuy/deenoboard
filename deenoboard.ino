@@ -9,8 +9,8 @@
 #define COLOR_ORDER GRB 
 #define NUM_MODES 4
 
-#define ROWS 9
-#define COLS 5
+#define ROWS 5
+#define COLS 9
 
 int values[ROWS][COLS]; // 2D array to keep track of the current color of each tile
 int mem_values[ROWS][COLS]; // 2D array to keep track Memory Colors
@@ -18,17 +18,22 @@ int brightness[ROWS][COLS]; // 2D array to keep track of the current brightness 
 
 bool escape;
 
-// 3 * 3 array
-const byte rows = 3;
-const byte cols = 3;
+// 5 * 9 matrix
+const byte rows = 5;
+const byte cols = 9;
+
 char keys[rows][cols] = {
-  {1, 2, 3},
-  {11, 12, 13},
-  {21, 22, 23},
+  {1, 2, 3, 4, 5, 6, 7, 8, 9},
+  {11, 12, 13, 14, 15, 16, 17, 18, 19},
+  {21, 22, 23, 24, 25, 26, 27, 28, 29},
+  {31, 32, 33, 34, 35, 36, 37, 38, 39},
+  {41, 42, 43, 44, 45, 46, 47, 48, 49},
 };
 
-byte rowPins[rows] = {36, 37, 38};
-byte colPins[cols] = {22, 23, 24};
+// 22 = First Row
+// 31 = First Column
+byte rowPins[rows] = {22, 24, 26, 28, 30};
+byte colPins[cols] = {31, 33, 35, 37, 39, 41, 43, 47, 49};
 Keypad buttons = Keypad( makeKeymap(keys), rowPins, colPins, rows, cols );
 
 CRGB leds[NUM_LEDS];
