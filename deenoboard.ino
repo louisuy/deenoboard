@@ -1,4 +1,5 @@
 #include <Keypad.h>
+#include <arduinoFFT.h>
 #include <FastLED.h>
 
 #define SAMPLES 8        // Must be a power of 2
@@ -7,16 +8,30 @@
 #define BRIGHTNESS  128    // from 0 to 255
 #define LED_TYPE    WS2812B
 #define COLOR_ORDER GRB 
+
+// Mode control
 #define NUM_MODES 4
-#define MODE_PIN 12
+#define MODE_PIN 2
+
 
 #define ROWS 5
 #define COLS 9
 
+
+// Visualiser
+#define MIC_IN A0
+double vReal[SAMPLES];
+double vImag[SAMPLES];
+int intensity[COLS] = { };
+int displacement = 1;
+arduinoFFT FFT = arduinoFFT();
+int xres = COLS * 2;
+int yres = ROWS * 3;
+
 int values[ROWS][COLS]; // 2D array to keep track of the current color of each tile
 int mem_values[ROWS][COLS]; // 2D array to keep track Memory Colors
 int brightness[ROWS][COLS]; // 2D array to keep track of the current brightness of each tile
-int mode = 1;
+int mode = 2;
 
 bool escape;
 
@@ -52,31 +67,39 @@ void setup() {
     // clear_display(); //Make sure the display is blank
 
     pinMode(MODE_PIN, INPUT_PULLUP);
+
+    pinMode(MIC_IN, INPUT);
 }
 
 void loop() {
   
-  draw_tic_border();
-  tic();
+  // draw_tic_border();
+  // tic();
   
   int modeBtnState = digitalRead(MODE_PIN);
   if (modeBtnState == LOW){
+    clear_display();
     cycle_mode();
   }
 
+  // light_row(0, 0, 1, 127, 255);
   
-  switch(modeBtnState){
+  switch(mode){
     case 1:
-      // tic()
+      Visualiser();
+      // light_row(0, 0, 1, 127, 255);
       break;
     case 2:
-      // paint();
+      paint();
+      // light_row(0, 0, 2, 127, 255);
       break;
     case 3:
-      // audiovisualiser
+      tic();
+      // light_row(0, 0, 3, 127, 255);
       break;
     case 4:
-      // memory();
+      Memory();
+      // light_row(0, 0, 4, 127, 255);
       break;
   }
 }
@@ -132,8 +155,8 @@ void light_tile(int row, int col, int color, int bright){
 
 void paint(){
   clear_display();
-  light_column(14, 6, 6, 192, 190);
-  light_row(0, 6, 9, 192, 190);
+  // light_column(14, 6, 6, 192, 190);
+  // light_row(0, 6, 9, 192, 190);
   bool tap = 1;
   int color = 0;
   while(tap){                                               //Loop until a button is held
@@ -209,7 +232,7 @@ bool tacwinner(){
   //// Modified check meant for top left corner
 
   // Checks for tiles lit up in a row
-  for (int i = 0; i < 3; i++){
+  for (int i = 1; i < 4; i++){
     if (values[i][0] == values[i][1] && values[i][0] == values[i][2]){
       if (values[i][0] == 0){
         redwins();
@@ -223,7 +246,7 @@ bool tacwinner(){
   }
 
   // Checks for tiles lit up in a column
-  for (int i = 0; i < 3; i++){
+  for (int i = 3; i < 6; i++){
     if (values[0][i] == values[1][i] && values[0][i] == values[2][i]){
       if (values[i][0] == 0){
         redwins();
@@ -236,35 +259,31 @@ bool tacwinner(){
     }
   }
 
-  for (int i = 0; i < 3; i++){  
-    if (values[0][0] == values[1][1] && values[0][0] == values[2][2]){
-      if (values[i][0] == 0){
-        redwins();
-        return 0;
-      }
-      if (values[i][0] == 120){
-        bluewins();
-        return 0;
-      }
+  if (values[1][3] == values[2][4] && values[1][3] == values[3][5]){
+    if (values[1][3] == 0){
+      redwins();
+      return 0;
+    }
+    if (values[1][3] == 120){
+      bluewins();
+      return 0;
     }
   }
 
-  for (int i = 0; i < 3; i++){
-    if (values[0][2] == values[1][1] && values[0][2] == values[2][0]){
-      if (values[i][0] == 0){
+  if (values[1][5] == values[2][4] && values[1][5] == values[3][3]){
+      if (values[1][5] == 0){
         redwins();
         return 0;
       }
-      if (values[i][0] == 120){
+      if (values[1][5] == 120){
         bluewins();
         return 0;
       }
     }
-  }
 
   // Draw condition
-  for (int i = 0; i < 3; i++){
-    for (int j = 0; j < 3; j++){
+  for (int i = 1; i < 4; i++){
+    for (int j = 3; j < 6; j++){
       if (values[i][j] == 256){
         return 1;
       }
@@ -272,55 +291,55 @@ bool tacwinner(){
   }
 
   //// Original check
-  for(int i = 3; i < ROWS; i+=2){
-    if (values[i][0] == values[i][2] && values[i][0] == values[i][4]){
-      if (values[i][0] == 0){
-        redwins();
-        return 0;
-      }
-      if (values[i][0] == 120){
-        bluewins();
-        return 0;
-      }
-    }
-  }
-  for(int i = 0; i < 5; i+=2){
-    if (values[3][i] == values[5][i] && values[3][i] == values[7][i]){
-      if (values[3][i] == 0){
-        redwins();
-        return 0;
-      }
-      if (values[3][i] == 120){
-        bluewins();
-        return 0;
-      }
-    }
-  }
-  if (values[3][0] == values[5][2] && values[3][0] == values[7][4]){
-    if (values[3][0] == 0){
-      redwins();
-      return 0;
-    }
-    if (values[3][0] == 120){
-      bluewins();
-      return 0;
-    }
-  }
-  if (values[7][0] == values[5][2] && values[7][0] == values[3][4]){
-    if (values[7][0] == 0){
-      redwins();
-      return 0;
-    }
-    if (values[7][0] == 120){
-      bluewins();
-      return 0;
-    }
-  }
-  // Draw condition
-  for (int i = 3; i < ROWS; i += 2)
-    for (int j = 0; j < 5; j += 2)
-      if (values[i][j] == 256)
-        return 1;
+  // for(int i = 3; i < ROWS; i+=2){
+  //   if (values[i][0] == values[i][2] && values[i][0] == values[i][4]){
+  //     if (values[i][0] == 0){
+  //       redwins();
+  //       return 0;
+  //     }
+  //     if (values[i][0] == 120){
+  //       bluewins();
+  //       return 0;
+  //     }
+  //   }
+  // }
+  // for(int i = 0; i < 5; i+=2){
+  //   if (values[3][i] == values[5][i] && values[3][i] == values[7][i]){
+  //     if (values[3][i] == 0){
+  //       redwins();
+  //       return 0;
+  //     }
+  //     if (values[3][i] == 120){
+  //       bluewins();
+  //       return 0;
+  //     }
+  //   }
+  // }
+  // if (values[3][0] == values[5][2] && values[3][0] == values[7][4]){
+  //   if (values[3][0] == 0){
+  //     redwins();
+  //     return 0;
+  //   }
+  //   if (values[3][0] == 120){
+  //     bluewins();
+  //     return 0;
+  //   }
+  // }
+  // if (values[7][0] == values[5][2] && values[7][0] == values[3][4]){
+  //   if (values[7][0] == 0){
+  //     redwins();
+  //     return 0;
+  //   }
+  //   if (values[7][0] == 120){
+  //     bluewins();
+  //     return 0;
+  //   }
+  // }
+  // // Draw condition
+  // for (int i = 3; i < ROWS; i += 2)
+  //   for (int j = 0; j < 5; j += 2)
+  //     if (values[i][j] == 256)
+  //       return 1;
         
   nowins();
   return 0;
@@ -357,5 +376,133 @@ void nowins(){
   FastLED.show();
   delay(3000);
   clear_display();
+}
+//-----------------------------------------------------------------------------------
+
+void Visualiser(){
+  //Collect Samples
+  getSamples();
+  
+  //Update Display
+  visualiserUpdate();
+  
+  FastLED.show();
+}
+
+void getSamples(){
+  for(int i = 0; i < SAMPLES; i++){
+    vReal[i] = analogRead(MIC_IN);
+    Serial.println(vReal[i]);
+    vImag[i] = 0;
+  }
+
+  //FFT
+  FFT.Windowing(vReal, SAMPLES, FFT_WIN_TYP_HAMMING, FFT_FORWARD);
+  FFT.Compute(vReal, vImag, SAMPLES, FFT_FORWARD);
+  FFT.ComplexToMagnitude(vReal, vImag, SAMPLES);
+
+  //Update intensity Array
+  for(int i = 2; i < (xres*displacement)+2; i+=displacement){
+    vReal[i] = constrain(vReal[i],0 ,2047);            // set max value for input data
+    vReal[i] = map(vReal[i], 0, 2047, 0, yres);        // map data to fit our display
+
+    intensity[(i/displacement)-2] --;                      // Decrease displayed value
+    if (vReal[i] > intensity[(i/displacement)-2])          // Match displayed value to measured value
+      intensity[(i/displacement)-2] = vReal[i];
+  }
+}
+
+void visualiserUpdate(){
+  int color = 0;
+  for(int i = 0; i < xres; i++){
+    for(int j = 0; j < yres; j++){
+      int index;
+      if (i % 2 == 0) {
+        index = i * yres + j;
+      } else {
+        index = (i + 1) * yres - j - 1;
+      }
+      if(j <= intensity[i]){
+        leds[index] = CHSV(color, 255, BRIGHTNESS);
+      }
+      else{
+        leds[index] = CHSV(color, 255, 0);
+      }
+    }
+    color += 255/xres;
+  }
+}
+
+
+//-----------------------------------------------------------------------------------
+void Memory(){
+  clear_display();                    //Clear display
+  for(int i = 2; i < 6; i++){         //Print Vertical lines of box
+    light_tile(i, 1, 192, 255);
+    light_tile(i, 6, 192, 255);
+  }
+  for(int i = 1; i < 7; i++){         //Print Horizontal lines of box
+    light_tile(1, i, 192, 255);       
+    light_tile(6, i, 192, 255);       
+  }
+  FastLED.show();
+  Set_Colors();                       //Set Random Color Locations
+  bool tap = 1;
+  int color;
+  int tile1;
+  int tile2;
+  int end = 0;
+  while(tap){                         //Loop until BUTTON is held
+    int location1 = buttons.waitForKey();
+    if(buttons.getState() == HOLD)    //Exit if button is held
+      tap = 0;
+    if (location1){                    //When a button is pushed
+      color = mem_values[location1/10][(location1%10)-1];         //Update the color of the clicked tile
+      light_tile(location1/10, (location1%10)-1, color, 255);
+      tile1 = color;
+      FastLED.show();
+    }
+    int location2 = buttons.waitForKey();
+    if(buttons.getState() == HOLD)   //Exit if held
+      tap = 0;
+    if (location2){                  //When a button is pushed
+      color = mem_values[location2/10][(location2%10)-1];         //Update the color of the clicked tile
+      light_tile(location2/10, (location2%10)-1, color, 255);
+      tile2 = color;
+      FastLED.show();
+    }
+    if(tile1 != tile2 || location1 == location2){              //If tiles are not the same color
+        light_tile(location1/10, (location1%10)-1, 256, 255);   //Light the tiles black
+        light_tile(location2/10, (location2%10)-1, 256, 255);
+    }
+    else
+      end++;
+    delay(1000);
+    FastLED.show();
+    if(end == 8)
+      tap = 0;
+  }
+}
+
+
+void Set_Colors(){  //Makes a 4x4 grid of colored pairs in random locations for memory game
+  int color = 0;
+  for(int i = 0; i < ROWS; i++)
+    for(int j = 0; j < COLS; j++)
+      mem_values[i][j] = 256;
+  for(int j = 0; j < 8; j++){         //Place 8 colors
+    for(int i = 0; i< 2; i++){        //place each color twice
+      bool tile_not_empty = 1;
+      while(tile_not_empty){          //don't place color over another color
+        int row = (random()%4)+2;       //Get random tile
+        int col = (random()%4)+2;
+        if(mem_values[row][col] == 256){  //Check if tile is empty
+          mem_values[row][col] = color;   //Place color
+          tile_not_empty = 0;         //Exit loop
+        }
+      }
+    }
+    color += 32;                      //Increment Color
+  }
 }
 //-----------------------------------------------------------------------------------
