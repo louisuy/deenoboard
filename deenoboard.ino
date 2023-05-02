@@ -8,6 +8,7 @@
 #define LED_TYPE    WS2812B
 #define COLOR_ORDER GRB 
 #define NUM_MODES 4
+#define MODE_PIN 12
 
 #define ROWS 5
 #define COLS 9
@@ -15,6 +16,7 @@
 int values[ROWS][COLS]; // 2D array to keep track of the current color of each tile
 int mem_values[ROWS][COLS]; // 2D array to keep track Memory Colors
 int brightness[ROWS][COLS]; // 2D array to keep track of the current brightness of each tile
+int mode = 1;
 
 bool escape;
 
@@ -37,7 +39,6 @@ byte colPins[cols] = {31, 33, 35, 37, 39, 41, 43, 47, 49};
 Keypad buttons = Keypad( makeKeymap(keys), rowPins, colPins, rows, cols );
 
 CRGB leds[NUM_LEDS];
-int mode = 1;
 CRGBPalette16 currentPalette;
 
 void setup() {
@@ -49,12 +50,42 @@ void setup() {
     buttons.setHoldTime(500); // require a .5 second hold to change modes
     randomSeed(analogRead(0)); //Seed Random
     // clear_display(); //Make sure the display is blank
+
+    pinMode(MODE_PIN, INPUT_PULLUP);
 }
 
 void loop() {
   
-  // draw_tic_border();
+  draw_tic_border();
   tic();
+  
+  int modeBtnState = digitalRead(MODE_PIN);
+  if (modeBtnState == LOW){
+    cycle_mode();
+  }
+
+  
+  switch(modeBtnState){
+    case 1:
+      // tic()
+      break;
+    case 2:
+      // paint();
+      break;
+    case 3:
+      // audiovisualiser
+      break;
+    case 4:
+      // memory();
+      break;
+  }
+}
+
+void cycle_mode(){
+  mode++;
+  if (mode > NUM_MODES){
+    mode = 1;
+  }
 }
 
 // lights a specific led dictated by row and column
@@ -205,32 +236,37 @@ bool tacwinner(){
     }
   }
 
-  if (values[0][0] == values[1][1] && values[0][0] == values[2][2]){
-    if (values[i][0] == 0){
-      redwins();
-      return 0;
-    }
-    if (values[i][0] == 120){
-      bluewins();
-      return 0;
+  for (int i = 0; i < 3; i++){  
+    if (values[0][0] == values[1][1] && values[0][0] == values[2][2]){
+      if (values[i][0] == 0){
+        redwins();
+        return 0;
+      }
+      if (values[i][0] == 120){
+        bluewins();
+        return 0;
+      }
     }
   }
 
-  if (values[0][2] == values[1][1] && values[0][2] == values[2][0]){
-    if (values[i][0] == 0){
-      redwins();
-      return 0;
-    }
-    if (values[i][0] == 120){
-      bluewins();
-      return 0;
+  for (int i = 0; i < 3; i++){
+    if (values[0][2] == values[1][1] && values[0][2] == values[2][0]){
+      if (values[i][0] == 0){
+        redwins();
+        return 0;
+      }
+      if (values[i][0] == 120){
+        bluewins();
+        return 0;
+      }
     }
   }
+
   // Draw condition
   for (int i = 0; i < 3; i++){
     for (int j = 0; j < 3; j++){
       if (values[i][j] == 256){
-        return 1
+        return 1;
       }
     }
   }
