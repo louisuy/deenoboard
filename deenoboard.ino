@@ -50,7 +50,7 @@ char keys[rows][cols] = {
 // 22 = First Row
 // 31 = First Column
 byte rowPins[rows] = {22, 24, 26, 28, 30};
-byte colPins[cols] = {31, 33, 35, 37, 39, 41, 43, 47, 49};
+byte colPins[cols] = {31, 33, 35, 37, 39, 41, 43, 45, 47};
 Keypad buttons = Keypad( makeKeymap(keys), rowPins, colPins, rows, cols );
 
 CRGB leds[NUM_LEDS];
@@ -76,10 +76,24 @@ void loop() {
   // draw_tic_border();
   // tic();
   
+  for (int i = 0; i < ROWS; i++){
+    for (int j = 0; j < COLS; j++){
+      // light_tile(i, j, 197, 197);
+      // FastLED.show();
+      // delay(100);
+      // clear_display();
+    }
+  }
+// int location = buttons.getKey();
+// light_tile(location/10, (location%10)-1, 197, 255);
+// FastLED.show();
+// Serial.write(location);
+
+
   int modeBtnState = digitalRead(MODE_PIN);
   if (modeBtnState == LOW){
-    clear_display();
-    cycle_mode();
+    // clear_display();
+    // cycle_mode();
   }
 
   // light_row(0, 0, 1, 127, 255);
@@ -91,7 +105,8 @@ void loop() {
       break;
     case 2:
       paint();
-      // light_row(0, 0, 2, 127, 255);
+      light_row(1, 5, 2, 127, 255);
+      FastLED.show();
       break;
     case 3:
       tic();
