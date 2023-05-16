@@ -11,7 +11,7 @@
 
 // Mode control
 #define NUM_MODES 4
-#define MODE_PIN 2
+#define MODE_PIN 99
 
 
 #define ROWS 5
@@ -49,7 +49,7 @@ char keys[rows][cols] = {
 
 // 22 = First Row
 // 31 = First Column
-byte rowPins[rows] = {22, 24, 26, 28, 30};
+byte rowPins[rows] = {30, 28, 26, 24, 22};
 byte colPins[cols] = {31, 33, 35, 37, 39, 41, 43, 45, 47};
 Keypad buttons = Keypad( makeKeymap(keys), rowPins, colPins, rows, cols );
 
@@ -153,7 +153,6 @@ void light_row(int colStart, int colEnd, int row, int color, int bright){
 }
 
 void light_tile(int row, int col, int color, int bright){
-  
     if (color == 256) 
         bright = 0; 
     for(int i=14; i >= 12; i--){
