@@ -567,13 +567,27 @@ void Set_Colors(){  //Makes a 4x4 grid of colored pairs in random locations for 
         int col = (random(2, 8));
         if(mem_values[row][col] == 256){  //Check if tile is empty
           mem_values[row][col] = colors[j];   //Place color
-          // light_tile(row, col, colors[j], values[j]);
           FastLED.show();
           tile_not_empty = 0;         //Exit loop
         }
       }
     }
     continue;
+  }
+
+  // Code for displaying the colours briefly in Memory Game
+  for (int i = 1; i < ROWS; i++){
+    for (int j = 2; j < COLS; j++){
+        color = mem_values[row][col];
+        // If values[] has been changed, we'll have to set brightness manually
+        light_tile(row, col, color, 255);
+    }
+  }
+  delay(5000);
+  for (int i = 1; i < ROWS; i++){
+    for (int j = 2; j < COLS; j++){
+        light_tile(row, col, 256, 255);
+    }
   }
 }
 //-----------------------------------------------------------------------------------
