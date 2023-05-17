@@ -132,6 +132,7 @@ void loop() {
     case 4:
       Memory();
       clear_display();
+      delay(2500);        // Wait 2.5 secs before showing next set of tiles
       break;
   }
 }
@@ -567,7 +568,7 @@ void Set_Colors(){  //Makes a 4x4 grid of colored pairs in random locations for 
         int col = (random(2, 8));
         if(mem_values[row][col] == 256){  //Check if tile is empty
           mem_values[row][col] = colors[j];   //Place color
-          light_tile(row, col, colors[j], values[j])
+          light_tile(row, col, colors[j], values[j]);
           FastLED.show();
           tile_not_empty = 0;         //Exit loop
         }
@@ -576,7 +577,7 @@ void Set_Colors(){  //Makes a 4x4 grid of colored pairs in random locations for 
     continue;
   }
 
-  delay(5000);
+  delay(2500); // flashes 
   for (int i = 1; i < ROWS; i++){
     for (int j = 2; j < COLS; j++){
         light_tile(i, j, 256, 255);
