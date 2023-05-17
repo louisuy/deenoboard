@@ -35,7 +35,7 @@ arduinoFFT FFT = arduinoFFT();
 int values[ROWS][COLS]; // 2D array to keep track of the current color of each tile
 int mem_values[ROWS][COLS]; // 2D array to keep track Memory Colors
 int brightness[ROWS][COLS]; // 2D array to keep track of the current brightness of each tile
-int mode = 1;
+int mode = 4;
 
 bool escape;
 
@@ -89,7 +89,7 @@ void setup() {
     randomSeed(analogRead(0)); //Seed Random
     clear_display(); //Make sure the display is blank
 
-    // pinMode(MODE_PIN, INPUT_PULLUP);
+    pinMode(MODE_PIN, INPUT_PULLUP);
 
 }
 
@@ -468,15 +468,15 @@ void Memory(){
   while(tap){                         //Loop until BUTTON is held
  
     for(int i = 0; i < 5; i++){         //Print Vertical lines of box
-        light_tile(i, 1, 192, 255);
-        light_tile(i, 8, 192, 255);
+        light_tile(i, 1, 192, 100);
+        light_tile(i, 8, 192, 100);
       }
     for(int i = 1; i < 9; i++){         //Print Horizontal lines of box
-      light_tile(0, i, 192, 180);       
-      light_tile(4, i, 192, 180);       
+      light_tile(0, i, 192, 140);       
+      light_tile(4, i, 192, 140);       
     }
     for (int i = 0; i < 5; i++){
-      int brightness = int(255 * (end / 9));
+      int brightness = int(25 * end);
       light_tile(i, 0, 192, brightness);
     }
       
@@ -541,7 +541,17 @@ void Memory(){
 
 void Set_Colors(){  //Makes a 4x4 grid of colored pairs in random locations for memory game
   srand(time(0));
-  int colors[9] = {0, 32, 16, 96, 128, 160, 180, 210, 240};
+  int red = 0;
+  int blurple = 180;
+  int orange = 16;
+  int yellow = 40;
+  int green = 96;
+  int cyan = 132;
+  int blue = 155;
+  int pink = 240;
+  int purple = 210;
+
+  int colors[9] = {red, orange, yellow, green, cyan, blurple, blue, purple, pink};
   int values[9] = {255, 255, 255, 255, 255, 255, 255, 255, 255};
 
   for(int i = 1; i < ROWS; i++)
