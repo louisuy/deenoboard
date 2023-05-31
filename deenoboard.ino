@@ -3,7 +3,7 @@
 #include <FastLED.h>
 #include <time.h>
 
-#define SAMPLES 64       // Must be a power of 2
+#define SAMPLES 32       // Must be a power of 2
 #define LED_PIN     6     // Data pin to LEDS
 #define NUM_LEDS    270  
 #define BRIGHTNESS  255    // from 0 to 255
@@ -14,6 +14,7 @@
 
 double vReal[SAMPLES];
 double vImag[SAMPLES];
+
 
 // Mode control
 #define NUM_MODES 4
@@ -77,6 +78,10 @@ CRGBPalette16 currentPalette;
 int currentState;
 int lastState = HIGH;
 
+
+unsigned long btnTime;
+bool reset = false;
+
 void setup() {
   
     pinMode(MIC_IN, INPUT);
@@ -95,12 +100,24 @@ void setup() {
 
 bool isModeBtnPressed(){
   currentState = digitalRead(MODE_PIN);
-  if (lastState == LOW && currentState == HIGH){
+
+  if (lastState == LOW && currentState == HIGH && !reset){
+    btnTime = millis();
+    reset = true;
+  }
+
+  if (currentState == HIGH && reset){
+    reset = false;
+  }
+  
+
+  if (currentState == HIGH && millis() - btnTime > 3000){
     cycle_mode();
     Serial.println('Mode switching');
     lastState = currentState;
     return true;
   }
+
   lastState = currentState; 
   return false;
 }
