@@ -36,21 +36,9 @@ arduinoFFT FFT = arduinoFFT();
 int values[ROWS][COLS]; // 2D array to keep track of the current color of each tile
 int mem_values[ROWS][COLS]; // 2D array to keep track Memory Colors
 int brightness[ROWS][COLS]; // 2D array to keep track of the current brightness of each tile
-int mode = 1;
+int mode = 4;
 
 bool escape;
-
-// 5 * 9 matrix
-// const byte rows = 6;
-// const byte cols = 10;
-
-// char keys[rows][cols] = {
-//   {1, 2, 3, 4, 5, 6, 7, 8, 9, 10},
-//   {11, 12, 13, 14, 15, 16, 17, 18, 19, 20},
-//   {21, 22, 23, 24, 25, 26, 27, 28, 29, 30},
-//   {31, 32, 33, 34, 35, 36, 37, 38, 39, 40},
-//   {41, 42, 43, 44, 45, 46, 47, 48, 49, 50},
-// };
 
 
 const byte rows = 5;
@@ -102,6 +90,9 @@ bool isModeBtnPressed(){
   currentState = digitalRead(MODE_PIN);
 
   if (lastState == LOW && currentState == HIGH){
+    if (mode == 2){
+      delay(500);
+    }
     cycle_mode();
     Serial.println('Mode switching');
     lastState = currentState;
@@ -111,6 +102,9 @@ bool isModeBtnPressed(){
   lastState = currentState; 
   return false;
 }
+
+void light_screen(int color, int brightness, int saturation, int timeDelay);
+
 void loop() {
   // currentState = digitalRead(MODE_PIN);
   // if (lastState == LOW && currentState == HIGH){
@@ -128,16 +122,19 @@ void loop() {
       Visualiser();
       break;
     case 2:
+      light_screen(16, 255, 255, 1000);
       paint();
       FastLED.show();
       clear_display();
       break;
     case 3:
+      light_screen(96, 255, 255, 1000);
       tic();
       clear_display();
-      delay(1000);
       break;
     case 4:
+    
+      light_screen(180, 255, 255, 1000);
       Memory();
       clear_display();
       delay(2500);        // Wait 2.5 secs before showing next set of tiles
@@ -154,14 +151,14 @@ void cycle_mode(){
 }
 
 // lights a specific led dictated by row and column
-void light_led(int row, int col, int color, int brightness){
+void light_led(int row, int col, int color, int brightness, int sat = 255){
   int extra = 0;
   if (col % 2 != 0){
     col -= 1;
     extra = 1 + (row * 2);
   }
   int led = (14 - row) + (15 * col) + extra;
-  leds[led]= CHSV(192, 255, 190);
+  leds[led]= CHSV(color, sat, brightness);
   FastLED.show();    
 }
 
@@ -176,19 +173,30 @@ void light_row(int colStart, int colEnd, int row, int color, int bright){
   }
 }
 
-void light_tile(int row, int col, int color, int bright){
+void light_tile(int row, int col, int color, int bright, int sat = 255){
     if (color == 256) 
         bright = 0; 
     for(int i=14; i >= 12; i--){
-        leds[i - 3*row + 30*col]= CHSV(color, 255, bright); 
+        leds[i - 3*row + 30*col]= CHSV(color, sat, bright); 
     }
     for(int i=15; i <= 17; i++){
-        leds[i + 3*row + 30*col]= CHSV(color, 255, bright); 
+        leds[i + 3*row + 30*col]= CHSV(color, sat, bright); 
     }
 
     // values array keeps track of the current colour of a tile
     values[row][col] = color;
     brightness[row][col] = bright; 
+}
+
+void light_screen(int color, int brightness, int saturation, int timeDelay = 1000){
+  for (int i = 0; i < ROWS; i++){
+    for (int j = 0; j < COLS; j++){
+        light_tile(i, j, color, brightness);
+    }
+  }
+  FastLED.show();
+  delay(timeDelay);
+  clear_display();
 }
 
 void paint(){
@@ -233,14 +241,14 @@ void clear_display(){
 void draw_tic_border(){
   // top of grid
   // clear_display();
-  int tileColour = 185;
-  int tileBrightness = 100;
+  int tileColour = 95;
+  int tileBrightness = 255;
   
   light_column(11, 3, 5, tileColour, tileBrightness);
   light_column(11, 3, 12, tileColour, tileBrightness);
   light_row(5, 12, 2, tileColour, tileBrightness);
   light_row(5, 12, 12, tileColour, tileBrightness);
-  
+  // light_led(0, 0, 255, 255, 0);
   FastLED.show();
 }
 
@@ -251,11 +259,11 @@ void tic(){
   draw_tic_border();
   bool tap = 1;
   bool turn = 0;
-  while(tacwinner()){
+  while(tacwinner() && tap){
     
     int location = buttons.getKey();
-    if(isModeBtnPressed()){
-      break;
+    if(mode == 3 && isModeBtnPressed()){
+      tap = 0;
     }
     else {
       bool isAlreadyPushed = false;
@@ -389,7 +397,6 @@ void nowins(){
 //-----------------------------------------------------------------------------------
 
 void Visualiser(){
-  
   if (isModeBtnPressed()){
     Serial.println('Visualiser Pressed');
     return;
@@ -455,12 +462,12 @@ void Memory(){
 
   clear_display();                    //Clear display
   for(int i = 0; i < 5; i++){         //Print Vertical lines of box
-    light_tile(i, 1, 192, 255);
-    light_tile(i, 8, 192, 255);
+    light_tile(i, 1, 192, 255, 0);
+    light_tile(i, 8, 192, 255, 0);
   }
   for(int i = 1; i < 9; i++){         //Print Horizontal lines of box
-    light_tile(0, i, 192, 180);       
-    light_tile(4, i, 192, 180);       
+    light_tile(0, i, 192, 180, 0);       
+    light_tile(4, i, 192, 180, 0);       
   }
   FastLED.show();
   Set_Colors();                       //Set Random Color Locations
@@ -594,3 +601,4 @@ void Set_Colors(){  //Makes a 4x4 grid of colored pairs in random locations for 
   }
 }
 //-----------------------------------------------------------------------------------
+
