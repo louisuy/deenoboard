@@ -462,12 +462,12 @@ void Memory(){
 
   clear_display();                    //Clear display
   for(int i = 0; i < 5; i++){         //Print Vertical lines of box
-    light_tile(i, 1, 192, 255, 0);
-    light_tile(i, 8, 192, 255, 0);
+    light_tile(i, 1, 192, 255);
+    light_tile(i, 8, 192, 255);
   }
   for(int i = 1; i < 9; i++){         //Print Horizontal lines of box
-    light_tile(0, i, 192, 180, 0);       
-    light_tile(4, i, 192, 180, 0);       
+    light_tile(0, i, 192, 255);       
+    light_tile(4, i, 192, 255);       
   }
   FastLED.show();
   Set_Colors();                       //Set Random Color Locations
