@@ -36,7 +36,7 @@ arduinoFFT FFT = arduinoFFT();
 int values[ROWS][COLS]; // 2D array to keep track of the current color of each tile
 int mem_values[ROWS][COLS]; // 2D array to keep track Memory Colors
 int brightness[ROWS][COLS]; // 2D array to keep track of the current brightness of each tile
-int mode = 4;
+int mode = 1;
 
 bool escape;
 
