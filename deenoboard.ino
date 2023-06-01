@@ -36,7 +36,7 @@ arduinoFFT FFT = arduinoFFT();
 int values[ROWS][COLS]; // 2D array to keep track of the current color of each tile
 int mem_values[ROWS][COLS]; // 2D array to keep track Memory Colors
 int brightness[ROWS][COLS]; // 2D array to keep track of the current brightness of each tile
-int mode = 4;
+int mode = 1;
 
 bool escape;
 
@@ -101,17 +101,7 @@ void setup() {
 bool isModeBtnPressed(){
   currentState = digitalRead(MODE_PIN);
 
-  if (lastState == LOW && currentState == HIGH && !reset){
-    btnTime = millis();
-    reset = true;
-  }
-
-  if (currentState == HIGH && reset){
-    reset = false;
-  }
-  
-
-  if (currentState == HIGH && millis() - btnTime > 3000){
+  if (lastState == LOW && currentState == HIGH){
     cycle_mode();
     Serial.println('Mode switching');
     lastState = currentState;
@@ -145,6 +135,7 @@ void loop() {
     case 3:
       tic();
       clear_display();
+      delay(1000);
       break;
     case 4:
       Memory();
